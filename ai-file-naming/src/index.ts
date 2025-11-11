@@ -8,6 +8,13 @@
 export { FileNamingSDK } from './core/FileNamingSDK';
 export { ConfigManager } from './core/ConfigManager';
 
+// Token Optimization Components
+export { ContentSampler } from './analyzers/ContentSampler';
+export { MetadataExtractor } from './analyzers/MetadataExtractor';
+export { PromptOptimizer } from './prompts/PromptOptimizer';
+export { BatchGrouper } from './core/BatchGrouper';
+export { SmartPipeline } from './core/SmartPipeline';
+
 // Provider exports
 export { AIProvider } from './providers/base/AIProvider';
 export { ProviderRegistry } from './providers/ProviderRegistry';
