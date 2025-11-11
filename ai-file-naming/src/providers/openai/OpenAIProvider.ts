@@ -87,7 +87,7 @@ export class OpenAIProvider extends AIProvider {
 
       // Make request to OpenAI (non-streaming)
       const response = (await this.client.chat.completions.create({
-        model: this.config.model ?? 'gpt-4o',
+        model: this.config.model ?? 'gpt-5-mini',
         messages,
         temperature: context.temperature ?? this.config.temperature,
         max_tokens: context.maxTokens ?? this.config.maxTokens ?? 150,
@@ -212,6 +212,9 @@ Guidelines:
    */
   private isVisionModel(model: string): boolean {
     const visionModels = [
+      'gpt-5',
+      'gpt-5-mini',
+      'gpt-5-nano',
       'gpt-4o',
       'gpt-4o-mini',
       'gpt-4-turbo',
