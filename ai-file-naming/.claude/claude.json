@@ -1,0 +1,38 @@
+{
+  "$schema": "https://claude.ai/schemas/claude-code-config.json",
+  "name": "AI File Naming SDK",
+  "description": "AI-powered file naming SDK with multi-provider support",
+  "version": "0.1.0",
+  "hooks": {
+    "post-code": {
+      "command": ".claude/hooks/post-code.sh",
+      "description": "Automatically format, lint, type-check, and build after coding",
+      "enabled": true,
+      "continueOnError": false
+    }
+  },
+  "settings": {
+    "typescript": {
+      "enabled": true,
+      "strict": true,
+      "configPath": "tsconfig.json"
+    },
+    "linting": {
+      "enabled": true,
+      "autoFix": true,
+      "configPath": ".eslintrc.js"
+    },
+    "formatting": {
+      "enabled": true,
+      "tool": "prettier",
+      "configPath": ".prettierrc"
+    }
+  },
+  "excludePaths": [
+    "node_modules",
+    "dist",
+    "coverage",
+    ".git",
+    "*.log"
+  ]
+}
