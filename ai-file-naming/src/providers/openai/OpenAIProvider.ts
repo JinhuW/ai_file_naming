@@ -86,13 +86,30 @@ export class OpenAIProvider extends AIProvider {
       const messages = this.buildMessages(context);
 
       // Make request to OpenAI (non-streaming)
-      const response = (await this.client.chat.completions.create({
-        model: this.config.model ?? 'gpt-5-mini',
+      // GPT-5 models use max_completion_tokens instead of max_tokens
+      const model = this.config.model ?? 'gpt-5-mini';
+      const isGPT5 = model.includes('gpt-5') || model.includes('gpt-4.1');
+
+      const requestParams: any = {
+        model,
         messages,
-        temperature: context.temperature ?? this.config.temperature,
-        max_tokens: context.maxTokens ?? this.config.maxTokens ?? 150,
         n: 1,
-      })) as OpenAIChatCompletionResponse;
+      };
+
+      // GPT-5 models only support temperature=1 (default)
+      if (!isGPT5) {
+        requestParams.temperature = context.temperature ?? this.config.temperature;
+      }
+
+      // Use appropriate token parameter based on model
+      // GPT-5 reasoning models need more tokens (reasoning + output)
+      if (isGPT5) {
+        requestParams.max_completion_tokens = context.maxTokens ?? this.config.maxTokens ?? 500;
+      } else {
+        requestParams.max_tokens = context.maxTokens ?? this.config.maxTokens ?? 150;
+      }
+
+      const response = (await this.client.chat.completions.create(requestParams)) as OpenAIChatCompletionResponse;
 
       const choice = response.choices[0];
       if (!choice?.message?.content) {
@@ -345,13 +362,29 @@ Guidelines:
         maxTokens: this.config.maxTokens,
       });
 
-      const stream = (await this.client.chat.completions.create({
-        model: this.config.model ?? 'gpt-5-mini',
+      const model = this.config.model ?? 'gpt-5-mini';
+      const isGPT5 = model.includes('gpt-5') || model.includes('gpt-4.1');
+
+      const streamParams: any = {
+        model,
         messages,
-        temperature: this.config.temperature,
-        max_tokens: this.config.maxTokens ?? 150,
         stream: true,
-      })) as AsyncIterable<OpenAIChatCompletionResponse>;
+      };
+
+      // GPT-5 models only support temperature=1 (default)
+      if (!isGPT5) {
+        streamParams.temperature = this.config.temperature;
+      }
+
+      // Use appropriate token parameter
+      // GPT-5 reasoning models need more tokens (reasoning + output)
+      if (isGPT5) {
+        streamParams.max_completion_tokens = this.config.maxTokens ?? 500;
+      } else {
+        streamParams.max_tokens = this.config.maxTokens ?? 150;
+      }
+
+      const stream = (await this.client.chat.completions.create(streamParams)) as AsyncIterable<OpenAIChatCompletionResponse>;
 
       let fullContent = '';
       for await (const chunk of stream) {
