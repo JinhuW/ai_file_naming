@@ -259,19 +259,19 @@ export class MetadataExtractor {
     }
 
     // Add sequence number if present
-    if (metadata.patterns?.hasSequenceNumber) {
+    if (metadata.patterns?.hasSequenceNumber && metadata.originalName) {
       const match = metadata.originalName.match(/(\d{3,})/);
-      if (match) {
+      if (match && match[1]) {
         parts.push(match[1]);
       }
     }
 
     // Fallback: use sanitized original name
-    if (parts.length === 0) {
+    if (parts.length === 0 && metadata.originalName) {
       return this.sanitize(metadata.originalName);
     }
 
-    return parts.join('_');
+    return parts.length > 0 ? parts.join('_') : 'file';
   }
 
   /**

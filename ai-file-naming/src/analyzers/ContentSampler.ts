@@ -12,7 +12,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import pdfParse from 'pdf-parse';
-import exifr from 'exifr';
+// import exifr from 'exifr';  // Will be used for full EXIF integration
 import sharp from 'sharp';
 
 export interface ContentSamplerConfig {
@@ -91,12 +91,12 @@ export class ContentSampler {
    * Sample image with thumbnail + EXIF
    */
   private async sampleImage(filePath: string): Promise<SampledContent> {
-    // Extract EXIF metadata first
-    const exifData = await exifr.parse(filePath, {
-      gps: true,
-      pick: ['DateTimeOriginal', 'CreateDate', 'Make', 'Model',
-             'GPSLatitude', 'GPSLongitude', 'ImageDescription'],
-    });
+    // Extract EXIF metadata first (will be used in future updates)
+    // const _exifData = await exifr.parse(filePath, {
+    //   gps: true,
+    //   pick: ['DateTimeOriginal', 'CreateDate', 'Make', 'Model',
+    //          'GPSLatitude', 'GPSLongitude', 'ImageDescription'],
+    // });
 
     // Generate thumbnail
     const thumbnail = await sharp(filePath)
@@ -106,10 +106,6 @@ export class ContentSampler {
       })
       .jpeg({ quality: 80 })
       .toBuffer();
-
-    // Combine metadata and thumbnail info
-    const metadata = this.formatExifMetadata(exifData);
-    const content = metadata ? `${metadata}\n[Image ${this.config.imageSize}px]` : `[Image ${this.config.imageSize}px]`;
 
     return {
       content: thumbnail,
@@ -122,18 +118,18 @@ export class ContentSampler {
   /**
    * Sample video frames (placeholder - requires ffmpeg)
    */
-  private async sampleVideo(_filePath: string): Promise<SampledContent> {
+  private async sampleVideo(filePath: string): Promise<SampledContent> {
     // For now, return metadata only
     // Full video frame extraction would require ffmpeg integration
-    return await this.sampleMetadata(_filePath);
+    return await this.sampleMetadata(filePath);
   }
 
   /**
    * Sample first N characters from text document
    */
   private async sampleDocument(filePath: string): Promise<SampledContent> {
-    const content = await fs.readFile(filePath, 'utf-8');
-    const sampled = content.slice(0, this.config.textChars);
+    const fileContent = await fs.readFile(filePath, 'utf-8');
+    const sampled = fileContent.slice(0, this.config.textChars);
 
     return {
       content: sampled,
@@ -167,32 +163,32 @@ export class ContentSampler {
   }
 
   /**
-   * Format EXIF metadata for prompts
+   * Format EXIF metadata for prompts (will be used in future updates)
    */
-  private formatExifMetadata(exifData: any): string {
-    if (!exifData) return '';
+  // private _formatExifMetadata(exifData: any): string {
+  //   if (!exifData) return '';
 
-    const parts: string[] = [];
+  //   const parts: string[] = [];
 
-    if (exifData.DateTimeOriginal || exifData.CreateDate) {
-      const date = exifData.DateTimeOriginal || exifData.CreateDate;
-      parts.push(`Date: ${new Date(date).toISOString().split('T')[0]}`);
-    }
+  //   if (exifData.DateTimeOriginal || exifData.CreateDate) {
+  //     const date = exifData.DateTimeOriginal || exifData.CreateDate;
+  //     parts.push(`Date: ${new Date(date).toISOString().split('T')[0]}`);
+  //   }
 
-    if (exifData.Make && exifData.Model) {
-      parts.push(`Camera: ${exifData.Make} ${exifData.Model}`);
-    }
+  //   if (exifData.Make && exifData.Model) {
+  //     parts.push(`Camera: ${exifData.Make} ${exifData.Model}`);
+  //   }
 
-    if (exifData.GPSLatitude && exifData.GPSLongitude) {
-      parts.push(`GPS: ${exifData.GPSLatitude.toFixed(4)}, ${exifData.GPSLongitude.toFixed(4)}`);
-    }
+  //   if (exifData.GPSLatitude && exifData.GPSLongitude) {
+  //     parts.push(`GPS: ${exifData.GPSLatitude.toFixed(4)}, ${exifData.GPSLongitude.toFixed(4)}`);
+  //   }
 
-    if (exifData.ImageDescription) {
-      parts.push(`Description: ${exifData.ImageDescription}`);
-    }
+  //   if (exifData.ImageDescription) {
+  //     parts.push(`Description: ${exifData.ImageDescription}`);
+  //   }
 
-    return parts.join(', ');
-  }
+  //   return parts.join(', ');
+  // }
 
   /**
    * Determine file type from extension

@@ -31,7 +31,7 @@ export type BaseProviderConfig = z.infer<typeof BaseProviderConfigSchema>;
 export const OpenAIConfigSchema = BaseProviderConfigSchema.extend({
   type: z.literal('openai'),
   apiKey: z.string(),
-  model: z.string().default('gpt-4o'),
+  model: z.string().default('gpt-5-mini'),
   organization: z.string().optional(),
 });
 

@@ -27,7 +27,7 @@ export class OpenAIProvider extends AIProvider {
     supportsStreaming: true,
     supportsBatch: false,
     supportsCustomModels: true,
-    maxTokens: 128000, // GPT-4 Turbo max
+    maxTokens: 128000, // GPT-5 max context
     maxImageSize: 20 * 1024 * 1024, // 20MB
     maxImageCount: 10,
     supportedImageFormats: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
@@ -152,7 +152,7 @@ export class OpenAIProvider extends AIProvider {
 
     // Add images if present and model supports vision
     if (context.images && context.images.length > 0) {
-      if (!this.isVisionModel(this.config.model ?? 'gpt-4o')) {
+      if (!this.isVisionModel(this.config.model ?? 'gpt-5-mini')) {
         this.providerLogger.warn('Model does not support vision. Images will be ignored.');
       } else {
         this.providerLogger.debug('Adding images to request', { count: context.images.length });
@@ -215,11 +215,6 @@ Guidelines:
       'gpt-5',
       'gpt-5-mini',
       'gpt-5-nano',
-      'gpt-4o',
-      'gpt-4o-mini',
-      'gpt-4-turbo',
-      'gpt-4-turbo-2024',
-      'gpt-4-vision',
     ];
     return visionModels.some((vm) => model.includes(vm));
   }
@@ -297,7 +292,7 @@ Guidelines:
       // If models.list fails, try a simple completion
       try {
         const response = await this.client.chat.completions.create({
-          model: 'gpt-3.5-turbo',
+          model: 'gpt-5-mini',
           messages: [{ role: 'user', content: 'test' }],
           max_tokens: 1,
         });
@@ -320,11 +315,9 @@ Guidelines:
    */
   protected isValidModel(model: string): boolean {
     const validModels = [
-      'gpt-4o',
-      'gpt-4o-mini',
-      'gpt-4-turbo',
-      'gpt-4',
-      'gpt-3.5-turbo',
+      'gpt-5',
+      'gpt-5-mini',
+      'gpt-5-nano',
       'o1-preview',
       'o1-mini',
     ];
@@ -353,7 +346,7 @@ Guidelines:
       });
 
       const stream = (await this.client.chat.completions.create({
-        model: this.config.model ?? 'gpt-4-turbo-preview',
+        model: this.config.model ?? 'gpt-5-mini',
         messages,
         temperature: this.config.temperature,
         max_tokens: this.config.maxTokens ?? 150,

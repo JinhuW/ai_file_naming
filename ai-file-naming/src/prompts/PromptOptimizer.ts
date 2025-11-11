@@ -65,7 +65,7 @@ export class PromptOptimizer {
    * Build ultra-minimal user prompt
    */
   private buildUltraMinimalUser(context: PromptContext): string {
-    const { fileType, content, pattern, metadata } = context;
+    const { fileType, content, pattern } = context;
 
     // If batch pattern exists, use it
     if (pattern) {

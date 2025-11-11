@@ -84,17 +84,21 @@ export class BatchGrouper {
    * Extract pattern from a representative file's generated name
    * Example: "beach_sunset_001" -> "beach_sunset_[n]"
    */
-  extractPattern(generatedName: string): string {
+  extractPattern(generatedName: string | undefined): string {
+    if (!generatedName) {
+      return '[n]';
+    }
+
     // Check for sequence numbers at end
     const numberMatch = generatedName.match(/(\d{3,})$/);
-    if (numberMatch) {
+    if (numberMatch && numberMatch[1]) {
       const baseName = generatedName.slice(0, -numberMatch[1].length);
       return `${baseName}[n]`;
     }
 
     // Check for dates
     const dateMatch = generatedName.match(/(\d{4}_\d{2}_\d{2})/);
-    if (dateMatch) {
+    if (dateMatch && dateMatch[1]) {
       return generatedName.replace(dateMatch[1], '[date]');
     }
 
