@@ -12,6 +12,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import pdfParse from 'pdf-parse';
+import * as XLSX from 'xlsx';
 // import exifr from 'exifr';  // Will be used for full EXIF integration
 import sharp from 'sharp';
 
@@ -58,6 +59,8 @@ export class ContentSampler {
           return await this.sampleVideo(filePath);
         case 'document':
           return await this.sampleDocument(filePath);
+        case 'excel':
+          return await this.sampleExcel(filePath);
         default:
           return await this.sampleMetadata(filePath);
       }
@@ -116,12 +119,69 @@ export class ContentSampler {
   }
 
   /**
+   * Sample Excel file - extract sheet names and headers
+   */
+  private async sampleExcel(filePath: string): Promise<SampledContent> {
+    const workbook = XLSX.readFile(filePath);
+
+    const content: string[] = [];
+
+    // Add sheet names
+    content.push(`Sheets: ${workbook.SheetNames.slice(0, 3).join(', ')}`);
+
+    // Extract first sheet content
+    if (workbook.SheetNames[0]) {
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      if (worksheet) {
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' }) as any[][];
+
+        // Get first few rows
+        const firstRow = jsonData[0] as any[];
+        const secondRow = jsonData[1] as any[];
+
+        if (firstRow && firstRow.length > 0) {
+          const headers = firstRow.slice(0, 5).filter(Boolean).join(', ');
+          if (headers) content.push(`Headers: ${headers}`);
+        }
+
+        if (secondRow && secondRow.length > 0) {
+          const sample = secondRow.slice(0, 3).filter(Boolean).join(', ');
+          if (sample) content.push(`Data: ${sample}`);
+        }
+
+        content.push(`${jsonData.length} rows`);
+      }
+    }
+
+    const text = content.join('. ');
+
+    return {
+      content: text,
+      type: 'text',
+      tokens: Math.ceil(text.length / 4),
+      extractionMethod: 'Excel sheet names and headers',
+    };
+  }
+
+  /**
    * Sample video frames (placeholder - requires ffmpeg)
    */
   private async sampleVideo(filePath: string): Promise<SampledContent> {
-    // For now, return metadata only
-    // Full video frame extraction would require ffmpeg integration
-    return await this.sampleMetadata(filePath);
+    // For now, return enhanced metadata with creation date
+    const stats = await fs.stat(filePath);
+    const createdDate = stats.birthtime.toISOString().split('T')[0];
+    const sizeMB = Math.round(stats.size / 1024 / 1024);
+    const basename = path.basename(filePath, path.extname(filePath));
+
+    const content = `Video file: ${basename}, created ${createdDate}, size ${sizeMB}MB`;
+
+    return {
+      content,
+      type: 'text',
+      tokens: Math.ceil(content.length / 4),
+      extractionMethod: 'Video metadata with creation date',
+    };
   }
 
   /**
@@ -207,6 +267,9 @@ export class ContentSampler {
       '.avi': 'video',
       '.mov': 'video',
       '.mkv': 'video',
+      '.xlsx': 'excel',
+      '.xls': 'excel',
+      '.csv': 'excel',
       '.txt': 'document',
       '.md': 'document',
       '.doc': 'document',
