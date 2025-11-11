@@ -4,6 +4,9 @@
   "description": "AI-powered file naming SDK for Node.js with support for multiple AI providers",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "filecataloger": "./dist/cli/filecataloger.js"
+  },
   "files": [
     "dist",
     "README.md",
